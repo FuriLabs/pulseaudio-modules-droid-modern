@@ -25,7 +25,8 @@
 
 typedef struct pa_droid_extcon pa_droid_extcon;
 
-pa_droid_extcon *pa_droid_extcon_new(pa_core *, pa_card *);
+pa_droid_extcon *pa_droid_extcon_new(pa_core *, pa_card *,
+                                     pa_droid_hw_module *z);
 
 void pa_droid_extcon_free(pa_droid_extcon *);
 

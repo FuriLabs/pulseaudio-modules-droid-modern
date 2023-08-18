@@ -30,6 +30,7 @@
 #include <pulsecore/i18n.h>
 #include <libudev.h>
 
+#include <droid/droid-util.h>
 #include "droid-extcon.h"
 
 /* For android */
@@ -100,6 +101,7 @@ struct udev_data {
 
 struct pa_droid_extcon {
     pa_card *card;
+    pa_droid_hw_module *hw_module;
     struct droid_switch *h2w;
     struct udev_data udev;
 };
@@ -116,23 +118,38 @@ static void notify_ports(pa_droid_extcon *u, struct droid_switch *as) {
 
     pa_device_port *p;
     void *state;
+    char *setparam;
 
     pa_assert(as == u->h2w); /* To be extended if we ever support more switches */
 
     pa_log_debug("Value of switch %s is now %d.", as->name, as->current_value);
 
+    pa_available_t has_headphone = hponly_avail(as->current_value);
+    pa_available_t has_headset = hsmic_avail(as->current_value);
+
     PA_HASHMAP_FOREACH(p, u->card->ports, state) {
         if (p->direction == PA_DIRECTION_OUTPUT) {
             if (!strcmp(p->name, "output-wired_headset"))
-                pa_device_port_set_available(p, hsmic_avail(as->current_value));
+                pa_device_port_set_available(p, has_headset);
             if (!strcmp(p->name, "output-wired_headphone"))
-                pa_device_port_set_available(p, hponly_avail(as->current_value));
+                pa_device_port_set_available(p, has_headphone);
         }
         if (p->direction == PA_DIRECTION_INPUT) {
             if (!strcmp(p->name, "input-wired_headset"))
-                pa_device_port_set_available(p, hsmic_avail(as->current_value));
+                pa_device_port_set_available(p, has_headset);
         }
     }
+
+    setparam = pa_sprintf_malloc("%s=%d;%s=%d",
+        (has_headset == PA_AVAILABLE_YES) ? AUDIO_PARAMETER_DEVICE_CONNECT :
+        AUDIO_PARAMETER_DEVICE_DISCONNECT, AUDIO_DEVICE_OUT_WIRED_HEADSET,
+        (has_headphone == PA_AVAILABLE_YES) ? AUDIO_PARAMETER_DEVICE_CONNECT :
+        AUDIO_PARAMETER_DEVICE_DISCONNECT, AUDIO_DEVICE_OUT_WIRED_HEADPHONE);
+
+    pa_log_debug("set_parameters(): %s", setparam);
+
+    pa_droid_set_parameters(u->hw_module, setparam);
+    pa_xfree(setparam);
 }
 
 static void udev_cb(pa_mainloop_api *a, pa_io_event *e, int fd,
@@ -225,7 +242,8 @@ static bool init_udev(pa_droid_extcon *u, pa_core *core) {
     return true;
 }
 
-pa_droid_extcon *pa_droid_extcon_new(pa_core *core, pa_card *card) {
+pa_droid_extcon *pa_droid_extcon_new(pa_core *core, pa_card *card,
+                                     pa_droid_hw_module *hw_module) {
 
     pa_droid_extcon *u = pa_xnew0(pa_droid_extcon, 1);
 
@@ -233,6 +251,7 @@ pa_droid_extcon *pa_droid_extcon_new(pa_core *core, pa_card *card) {
     pa_assert(card);
 
     u->card = card;
+    u->hw_module = hw_module;
     u->h2w = droid_switch_new("h2w");
     if (!u->h2w)
         goto fail;

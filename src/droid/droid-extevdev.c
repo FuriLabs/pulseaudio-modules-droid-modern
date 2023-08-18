@@ -36,6 +36,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/device-port.h>
 
+#include <droid/droid-util.h>
 #include "droid-extevdev.h"
 
 #define DEV_INPUT_EVENT "/dev/input"
@@ -45,6 +46,7 @@
 
 struct pa_droid_extevdev {
     pa_card *card;
+    pa_droid_hw_module *hw_module;
     struct libevdev *evdev_dev;
     pa_io_event *event;
 
@@ -124,6 +126,7 @@ static const char *headset_ports[] = {
 
 static void notify_ports(pa_droid_extevdev *u) {
     unsigned int i;
+    char *setparam;
 
     pa_available_t has_headphone =
         ((u->sw_headphone_insert || u->sw_lineout_insert)
@@ -144,6 +147,17 @@ static void notify_ports(pa_droid_extevdev *u) {
         if (p)
             pa_device_port_set_available(p, has_headset);
     }
+
+    setparam = pa_sprintf_malloc("%s=%d;%s=%d",
+        (has_headset == PA_AVAILABLE_YES) ? AUDIO_PARAMETER_DEVICE_CONNECT :
+        AUDIO_PARAMETER_DEVICE_DISCONNECT, AUDIO_DEVICE_OUT_WIRED_HEADSET,
+        (has_headphone == PA_AVAILABLE_YES) ? AUDIO_PARAMETER_DEVICE_CONNECT :
+        AUDIO_PARAMETER_DEVICE_DISCONNECT, AUDIO_DEVICE_OUT_WIRED_HEADPHONE);
+
+    pa_log_debug("set_parameters(): %s", setparam);
+
+    pa_droid_set_parameters(u->hw_module, setparam);
+    pa_xfree(setparam);
 }
 
 /* Called from IO context */
@@ -221,13 +235,15 @@ static void read_initial_switch_values(pa_droid_extevdev *u) {
     notify_ports(u);
 }
 
-pa_droid_extevdev *pa_droid_extevdev_new(pa_core *core, pa_card *card) {
+pa_droid_extevdev *pa_droid_extevdev_new(pa_core *core, pa_card *card,
+                                         pa_droid_hw_module *hw_module) {
     pa_droid_extevdev *u = pa_xnew0(pa_droid_extevdev, 1);
 
     pa_assert(core);
     pa_assert(card);
 
     u->card = card;
+    u->hw_module = hw_module;
     u->evdev_dev = find_switch_evdev();
 
     if (!u->evdev_dev)

@@ -901,10 +901,10 @@ int pa__init(pa_module *m) {
 
     pa_card_choose_initial_profile(u->card);
     init_profile(u);
-    u->extcon = pa_droid_extcon_new(m->core, u->card);
+    u->extcon = pa_droid_extcon_new(m->core, u->card, u->hw_module);
 
     if (!u->extcon)
-        u->extevdev = pa_droid_extevdev_new(m->core, u->card);
+        u->extevdev = pa_droid_extevdev_new(m->core, u->card, u->hw_module);
     else
         u->extevdev = NULL;
 

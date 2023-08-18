@@ -25,7 +25,8 @@
 
 typedef struct pa_droid_extevdev pa_droid_extevdev;
 
-pa_droid_extevdev *pa_droid_extevdev_new(pa_core *, pa_card *);
+pa_droid_extevdev *pa_droid_extevdev_new(pa_core *, pa_card *,
+                                         pa_droid_hw_module *);
 
 void pa_droid_extevdev_free(pa_droid_extevdev *);
 
