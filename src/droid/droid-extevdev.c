@@ -126,17 +126,7 @@ static const char *headset_ports[] = {
 
 static void notify_ports(pa_droid_extevdev *u) {
     unsigned int i;
-    char *setparam;
-
-    pa_available_t has_headphone =
-        ((u->sw_headphone_insert || u->sw_lineout_insert)
-        && !u->sw_microphone_insert) ? PA_AVAILABLE_YES : PA_AVAILABLE_NO;
-
-    for (i=0; i < N_ELEMENTS(headphone_ports); i++) {
-        pa_device_port *p = pa_hashmap_get(u->card->ports, headphone_ports[i]);
-        if (p)
-            pa_device_port_set_available(p, has_headphone);
-    }
+    char *setparam_headset, *setparam_headphone;
 
     pa_available_t has_headset =
         ((u->sw_headphone_insert || u->sw_lineout_insert)
@@ -148,16 +138,39 @@ static void notify_ports(pa_droid_extevdev *u) {
             pa_device_port_set_available(p, has_headset);
     }
 
-    setparam = pa_sprintf_malloc("%s=%d;%s=%d",
+    setparam_headset = pa_sprintf_malloc("%s=%d",
         (has_headset == PA_AVAILABLE_YES) ? AUDIO_PARAMETER_DEVICE_CONNECT :
-        AUDIO_PARAMETER_DEVICE_DISCONNECT, AUDIO_DEVICE_OUT_WIRED_HEADSET,
+        AUDIO_PARAMETER_DEVICE_DISCONNECT, AUDIO_DEVICE_OUT_WIRED_HEADSET);
+
+    pa_log_debug("set_parameters(): %s, %s=%d",
+        (has_headset == PA_AVAILABLE_YES) ? "Headset connect" : "Headset disconnect",
+        (has_headset == PA_AVAILABLE_YES) ? AUDIO_PARAMETER_DEVICE_CONNECT :
+        AUDIO_PARAMETER_DEVICE_DISCONNECT, AUDIO_DEVICE_OUT_WIRED_HEADSET);
+
+    pa_droid_set_parameters(u->hw_module, setparam_headset);
+    pa_xfree(setparam_headset);
+
+    pa_available_t has_headphone =
+        ((u->sw_headphone_insert || u->sw_lineout_insert || u->sw_microphone_insert))
+        ? PA_AVAILABLE_YES : PA_AVAILABLE_NO;
+
+    for (i=0; i < N_ELEMENTS(headphone_ports); i++) {
+        pa_device_port *p = pa_hashmap_get(u->card->ports, headphone_ports[i]);
+        if (p)
+            pa_device_port_set_available(p, has_headphone);
+    }
+
+    setparam_headphone = pa_sprintf_malloc("%s=%d",
         (has_headphone == PA_AVAILABLE_YES) ? AUDIO_PARAMETER_DEVICE_CONNECT :
         AUDIO_PARAMETER_DEVICE_DISCONNECT, AUDIO_DEVICE_OUT_WIRED_HEADPHONE);
 
-    pa_log_debug("set_parameters(): %s", setparam);
+    pa_log_debug("set_parameters(): %s, %s=%d",
+        (has_headphone == PA_AVAILABLE_YES) ? "Headphone connect" : "Headphone disconnect",
+        (has_headphone == PA_AVAILABLE_YES) ? AUDIO_PARAMETER_DEVICE_CONNECT :
+        AUDIO_PARAMETER_DEVICE_DISCONNECT, AUDIO_DEVICE_OUT_WIRED_HEADPHONE);
 
-    pa_droid_set_parameters(u->hw_module, setparam);
-    pa_xfree(setparam);
+    pa_droid_set_parameters(u->hw_module, setparam_headphone);
+    pa_xfree(setparam_headphone);
 }
 
 /* Called from IO context */
