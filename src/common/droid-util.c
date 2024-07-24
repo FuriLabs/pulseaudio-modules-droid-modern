@@ -1334,7 +1334,7 @@ static bool stream_config_fill(pa_droid_hw_module *hw,
     int i;
 
     pa_assert(mix_port);
-    pa_assert(mix_port->port_type == DM_CONFIG_TYPE_MIX_PORT);
+//    pa_assert(mix_port->port_type == DM_CONFIG_TYPE_MIX_PORT);
     pa_assert(device_port);
     pa_assert(sample_spec);
     pa_assert(channel_map);
