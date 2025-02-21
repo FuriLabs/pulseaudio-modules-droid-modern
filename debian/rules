@@ -3,7 +3,7 @@
 
 include /usr/share/dpkg/default.mk
 
-PA_MODULE_DIR := $$(readlink -f /usr/lib/pulse-*/modules)
+PA_MODULE_DIR := $$(readlink -f /usr/lib/pulse-17.0+dfsg1/modules)
 
 %:
 	dh $@ --with=autoreconf
@@ -12,7 +12,7 @@ override_dh_auto_configure:
 	dh_auto_configure -- --disable-static --with-module-dir=${PA_MODULE_DIR}
 
 override_dh_autoreconf:
-	echo ${DEB_VERSION_UPSTREAM} > .tarball-version
+	echo 17.0 > .tarball-version
 	dh_autoreconf
 
 override_dh_auto_clean:
