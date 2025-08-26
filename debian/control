@@ -3,7 +3,7 @@ Section: sound
 Priority: optional
 Build-Depends: android-headers,
                check,
-               debhelper (>= 11),
+               debhelper-compat (= 13),
                dh-exec,
                intltool,
                pulseaudio-pulsecore-dev,
@@ -14,12 +14,12 @@ Build-Depends: android-headers,
                libpulse-dev,
                libexpat1-dev,
                libevdev-dev,
-               libudev-dev
-Maintainer: Eugenio Paolantonio (g7) <me@medesimo.eu>
-Standards-Version: 4.3.0
+               libudev-dev,
+Maintainer: Bardia Moshiri <bardia@furilabs.com>
+Standards-Version: 4.7.0
 Homepage: https://github.com/mer-hybris/pulseaudio-modules-droid
-Vcs-Git: https://github.com/droidian/pulseaudio-modules-droid-modern.git
-Vcs-Browser: https://github.com/droidian/pulseaudio-modules-droid-modern
+Vcs-Git: https://github.com/furilabs/pulseaudio-modules-droid-modern.git
+Vcs-Browser: https://github.com/furilabs/pulseaudio-modules-droid-modern
 
 Package: pulseaudio-modules-droid-modern
 Architecture: any
