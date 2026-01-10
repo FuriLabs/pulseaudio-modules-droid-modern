@@ -1334,11 +1334,21 @@ static bool stream_config_fill(pa_droid_hw_module *hw,
     int i;
 
     pa_assert(mix_port);
-    pa_assert(mix_port->port_type == DM_CONFIG_TYPE_MIX_PORT);
     pa_assert(device_port);
     pa_assert(sample_spec);
     pa_assert(channel_map);
     pa_assert(config);
+
+    if (mix_port->port_type != DM_CONFIG_TYPE_MIX_PORT) {
+        pa_log_debug("stream_config_fill(): invalid mix_port type for \"%s\": port_type=%d (expected %d). "
+                     "role=%d flags=%#010x",
+                     mix_port->name ? mix_port->name : "<null>",
+                     (int) mix_port->port_type,
+                     (int) DM_CONFIG_TYPE_MIX_PORT,
+                     (int) mix_port->role,
+                     (unsigned) mix_port->flags);
+        goto fail;
+    }
 
     output = mix_port->role == DM_CONFIG_ROLE_SOURCE ? true : false;
 
