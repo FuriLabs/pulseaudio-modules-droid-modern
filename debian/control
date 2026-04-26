@@ -1,6 +1,7 @@
 Source: pulseaudio-modules-droid-modern
 Section: sound
 Priority: optional
+XS-FuriOS-Extra-Repos: deb http://furilabs-pulseaudio.repo.furios.io/forky-pulse-17 forky main
 Build-Depends: android-headers,
                check,
                debhelper-compat (= 13),
