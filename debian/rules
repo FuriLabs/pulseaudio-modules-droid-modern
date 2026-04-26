@@ -13,6 +13,7 @@ override_dh_auto_configure:
 
 override_dh_autoreconf:
 	echo ${DEB_VERSION_UPSTREAM} > .tarball-version
+	echo "17.0" > .tarball-version
 	dh_autoreconf
 
 override_dh_auto_clean:
